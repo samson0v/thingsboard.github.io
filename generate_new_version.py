@@ -67,7 +67,6 @@ def ask_bool(prompt: str) -> bool:
             return False
         print("Please answer true/false (or yes/no, 1/0).")
 
-
 def validate_version_string(v: str) -> None:
     if not SEMVER_RE.match(v):
         raise ValueError("Version must be digits separated by dots, e.g. 4.2.1.1")
@@ -116,6 +115,39 @@ def sort_versions_desc(versions: List[str]) -> List[str]:
     return uniq
 
 
+def is_patch_version(version: str) -> bool:
+    return len(version.split(".")) > 3
+
+
+def base_xyz(version: str) -> str:
+    parts = version.split(".")
+    if len(parts) < 3:
+        return ".".join(parts + ["0"])
+    return ".".join(parts[:3])
+
+
+def choose_version_to_mark_vulnerable(new_version: str, existing_versions_before_insert: List[str]) -> Optional[str]:
+    if not is_patch_version(new_version):
+        return None
+
+    base = base_xyz(new_version)
+    base_prefix = base + "."
+
+    patches = [
+        v for v in existing_versions_before_insert
+        if v.startswith(base_prefix) and len(v.split(".")) > 3
+    ]
+
+    prev_patches = [p for p in patches if is_version_greater(new_version, p)]
+    if prev_patches:
+        prev_patches.sort(key=parse_version_to_tuple, reverse=True)
+        return prev_patches[0]
+
+    if base in existing_versions_before_insert:
+        return base
+
+    return None
+
 DATE_FORMATS = [
     "%d %b %Y",
     "%d %B %Y",
@@ -150,8 +182,8 @@ def fmt_release_date_frontmatter(dt: datetime) -> str:
 
 
 def fmt_release_date_for_includes(dt: datetime) -> str:
+    # ONLY for _includes files
     return dt.strftime("%b %d, %Y").replace(" 0", " ")
-
 
 def extract_versions_with_line_indexes(lines: List[str]) -> List[Tuple[str, int]]:
     out: List[Tuple[str, int]] = []
@@ -169,6 +201,91 @@ def write_file(path: Path, content: str, overwrite: bool) -> None:
         return
     path.write_text(content, encoding="utf-8")
     print(f"WROTE: {path}")
+
+def mark_vulnerable_in_yml_lines(yml_lines: List[str], target_version: str) -> bool:
+    changed = False
+
+    start = None
+    for i, line in enumerate(yml_lines):
+        if line.strip() == f"{target_version}:":
+            start = i
+            break
+    if start is None:
+        return False
+
+    end = len(yml_lines)
+    for j in range(start + 1, len(yml_lines)):
+        if TOP_KEY_RE.match(yml_lines[j].rstrip("\n")):
+            end = j
+            break
+
+    vuln_line_idx = None
+    for k in range(start + 1, end):
+        stripped = yml_lines[k].lstrip()
+        if stripped.startswith("vulnerable:"):
+            vuln_line_idx = k
+            break
+
+    desired = f'  vulnerable: {BOOL_QUOTES}true{BOOL_QUOTES}\n'
+
+    if vuln_line_idx is not None:
+        if yml_lines[vuln_line_idx] != desired:
+            yml_lines[vuln_line_idx] = desired
+            changed = True
+        return changed
+
+    yml_lines.insert(start + 1, desired)
+    changed = True
+    return changed
+
+def render_upgrade_md_ce(fam: str, os_key: str, os_title: str) -> str:
+    return f"""---
+layout: {CE_UPG_LAYOUT}
+title: ThingsBoard CE v{fam}.x upgrade instructions for {os_title}
+description: ThingsBoard CE v{fam}.x upgrade guide for {os_title}
+active-menu-item-click: "true"
+breadcrumbs: true
+breadcrumbs-steps: 2
+breadcrumbs-show: 2
+effective-url: '{CE_UPG_EFFECTIVE_URL}'
+---
+
+* TOC
+{{:toc}}
+
+{{% include upgrade-instructions.liquid family="{fam}" os="{os_key}" %}}
+"""
+
+
+def render_upgrade_md_pe(fam: str, os_key: str, os_title: str) -> str:
+    return f"""---
+layout: {PE_UPG_LAYOUT}
+title: ThingsBoard PE v{fam}.x upgrade instructions for {os_title}
+description: ThingsBoard PE v{fam}.x upgrade guide for {os_title}
+active-menu-item-click: "true"
+breadcrumbs: true
+breadcrumbs-steps: 2
+breadcrumbs-show: 2
+effective-url: '{PE_UPG_EFFECTIVE_URL}'
+---
+
+* TOC
+{{:toc}}
+
+{{% assign docsPrefix = "pe/" %}}
+
+{{% include upgrade-instructions.liquid family="{fam}" os="{os_key}" %}}
+"""
+
+def render_release_include_ce(version: str, release_dt: datetime) -> str:
+    date_str = fmt_release_date_for_includes(release_dt)
+    return f"### ThingsBoard CE v{version} ({date_str})\n"
+
+
+def render_release_include_pe(version: str, release_dt: datetime) -> str:
+    date_str = fmt_release_date_for_includes(release_dt)
+    return f"### ThingsBoard PE v{version} ({date_str})\n"
+
 
 def extract_frontmatter(text: str) -> Tuple[str, str, str]:
     if not text.startswith("---"):
@@ -221,7 +338,6 @@ def upsert_frontmatter_key(text: str, key: str, value_line: str) -> str:
             new_fm = "---\n" + "".join(fm_lines).lstrip("\n") + "---"
             return new_fm + rest
 
-    # insert if missing
     insert_after = None
     for i, line in enumerate(fm_lines):
         if line.strip().startswith("breadcrumbs-steps:"):
@@ -235,56 +351,6 @@ def upsert_frontmatter_key(text: str, key: str, value_line: str) -> str:
 
     new_fm = "---\n" + "".join(fm_lines).lstrip("\n") + "---"
     return new_fm + rest
-
-
-def render_upgrade_md_ce(fam: str, os_key: str, os_title: str) -> str:
-    return f"""---
-layout: {CE_UPG_LAYOUT}
-title: ThingsBoard CE v{fam}.x upgrade instructions for {os_title}
-description: ThingsBoard CE v{fam}.x upgrade guide for {os_title}
-active-menu-item-click: "true"
-breadcrumbs: true
-breadcrumbs-steps: 2
-breadcrumbs-show: 2
-effective-url: '{CE_UPG_EFFECTIVE_URL}'
----
-
-* TOC
-{{:toc}}
-
-{{% include upgrade-instructions.liquid family="{fam}" os="{os_key}" %}}
-"""
-
-
-def render_upgrade_md_pe(fam: str, os_key: str, os_title: str) -> str:
-    return f"""---
-layout: {PE_UPG_LAYOUT}
-title: ThingsBoard PE v{fam}.x upgrade instructions for {os_title}
-description: ThingsBoard PE v{fam}.x upgrade guide for {os_title}
-active-menu-item-click: "true"
-breadcrumbs: true
-breadcrumbs-steps: 2
-breadcrumbs-show: 2
-effective-url: '{PE_UPG_EFFECTIVE_URL}'
----
-
-* TOC
-{{:toc}}
-
-{{% assign docsPrefix = "pe/" %}}
-
-{{% include upgrade-instructions.liquid family="{fam}" os="{os_key}" %}}
-"""
-
-
-def render_release_include_ce(version: str, release_dt: datetime) -> str:
-    date_str = fmt_release_date_for_includes(release_dt)
-    return f"### ThingsBoard CE v{version} ({date_str})\n"
-
-
-def render_release_include_pe(version: str, release_dt: datetime) -> str:
-    date_str = fmt_release_date_for_includes(release_dt)
-    return f"### ThingsBoard PE v{version} ({date_str})\n"
 
 
 def render_release_family_ce(
@@ -360,7 +426,7 @@ def get_included_versions_from_family(lines: List[str], is_pe: bool) -> List[str
         m = inc_re.match(line.strip())
         if not m:
             continue
-        fname = m.group(1)  # v4-2-1-1-0-1.md
+        fname = m.group(1)
         mm = re.match(r"^v(\d+(?:-\d+)*)\.md$", fname)
         if mm:
             out.append(mm.group(1).replace("-", "."))
@@ -503,11 +569,13 @@ def main() -> int:
     yml_lines = yml_text.splitlines(keepends=True)
 
     versions_with_idx = extract_versions_with_line_indexes(yml_lines)
-    existing_versions = [v for v, _ in versions_with_idx]
+    existing_versions_before = [v for v, _ in versions_with_idx]
 
-    if new_version in existing_versions:
+    if new_version in existing_versions_before:
         print(f"ERROR: Version {new_version} already exists in {DATA_FILE}. Nothing changed.")
         return 2
+
+    vuln_target = choose_version_to_mark_vulnerable(new_version, existing_versions_before)
 
     insert_at = None
     for v, idx in versions_with_idx:
@@ -535,11 +603,17 @@ def main() -> int:
         yml_lines.insert(insert_at, new_block)
         print(f"Added new version to YAML (inserted): {new_version}")
 
+    if vuln_target:
+        if mark_vulnerable_in_yml_lines(yml_lines, vuln_target):
+            print(f"Marked previous version as vulnerable: {vuln_target}")
+        else:
+            print(f"NOTE: vulnerable target not found or already marked: {vuln_target}")
+
     DATA_FILE.write_text("".join(yml_lines), encoding="utf-8")
     print(f"WROTE: {DATA_FILE}")
 
     fam = family_of(new_version)
-    is_new_family = not family_exists(existing_versions, fam)
+    is_new_family = not family_exists(existing_versions_before, fam)
 
     if is_new_family:
         print(f"New upgrade-instructions family detected: {fam} -> generating md files...")
@@ -551,6 +625,7 @@ def main() -> int:
             write_file(pe_path, render_upgrade_md_pe(fam, os_key, os_title), overwrite=OVERWRITE_UPGRADE_MD)
     else:
         print(f"Upgrade-instructions family {fam} already exists -> no new upgrade md files created.")
+
 
     ver_fname = md_filename_for_version_full(new_version)
     ce_inc_path = CE_REL_INCLUDES_DIR / ver_fname
