@@ -250,9 +250,9 @@ effective-url: '{CE_UPG_EFFECTIVE_URL}'
 ---
 
 * TOC
-{{{{:toc}}}}
+{{:toc}}
 
-{{{{% include upgrade-instructions.liquid family="{fam}" os="{os_key}" %}}}}
+{{% include upgrade-instructions.liquid family="{fam}" os="{os_key}" %}}
 """
 
 
@@ -269,11 +269,11 @@ effective-url: '{PE_UPG_EFFECTIVE_URL}'
 ---
 
 * TOC
-{{{{:toc}}}}
+{{:toc}}
 
-{{{{% assign docsPrefix = "pe/" %}}}}
+{{% assign docsPrefix = "pe/" %}}
 
-{{{{% include upgrade-instructions.liquid family="{fam}" os="{os_key}" %}}}}
+{{% include upgrade-instructions.liquid family="{fam}" os="{os_key}" %}}
 """
 
 
@@ -314,7 +314,7 @@ latest-patch: {latest_patch_str}
 effective-url: '{CE_REL_EFFECTIVE_URL}'
 ---
 * TOC
-{{{{:toc}}}}
+{{:toc}}
 
 """
 
@@ -346,9 +346,9 @@ latest-patch: {latest_patch_str}
 effective-url: '{PE_REL_EFFECTIVE_URL}'
 ---
 * TOC
-{{{{:toc}}}}
+{{:toc}}
 
-{{{{% assign docsPrefix = "pe/" %}}}}
+{{% assign docsPrefix = "pe/" %}}
 
 """
 
