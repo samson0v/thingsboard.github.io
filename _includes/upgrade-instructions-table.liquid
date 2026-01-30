@@ -15,6 +15,10 @@
             {% for item in versionsCollection %}
                 {% assign version = item[0] %}
 
+                {% if item[1].vulnerable == 'true' %}
+                    {% continue %}
+                {% endif %}
+
                 {%- comment -%}Filter versions based on edition{%- endcomment -%}
                 {% if docsPrefix == "edge/" or docsPrefix == "pe/edge/" %}
                     {% unless item[1].release-date-edge %}

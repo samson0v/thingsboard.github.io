@@ -7,6 +7,10 @@
 {% assign family_minor = family_parts[1] %}
 
 {% for item in upgarde_instructions_data %}
+{% if item[1].vulnerable == 'true' %}
+    {% continue %}
+{% endif %}
+
 {% assign version = item[0] %}
 {% assign data = item[1] %}
 
