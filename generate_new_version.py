@@ -532,14 +532,20 @@ def build_new_version_block(
     lts_val = "true" if is_lts else "false"
     upgrade_val = "true" if upgrade else "false"
 
+    patch_line = ""
+    if is_patch_version(new_version):
+        patch_line = f"  patch: \"true\"\n"
+
     return (
         f"{new_version}:\n"
-        f"  upgradable-from: {UPGRADABLE_FROM_QUOTES}{upgradable_from}{UPGRADABLE_FROM_QUOTES}\n"
+        f"  upgradable-from: \"{upgradable_from}\"\n"
         f"  release-date: {release_date_raw}\n"
-        f"  lts: {BOOL_QUOTES}{lts_val}{BOOL_QUOTES}\n"
-        f"  upgrade: {BOOL_QUOTES}{upgrade_val}{BOOL_QUOTES}\n"
-        f"  x: {BOOL_QUOTES}true{BOOL_QUOTES}\n"
+        f"  lts: \"{lts_val}\"\n"
+        f"  upgrade: \"{upgrade_val}\"\n"
+        f"{patch_line}"
+        f"  x: \"true\"\n"
     )
+
 
 def main() -> int:
     print("=== Upgrade instructions generator ===")
