@@ -121,6 +121,15 @@ net stop thingsboard
 * Finally, run **upgrade.bat** script to upgrade ThingsBoard to the new version.
 {% endif %}
 
+{% if curr_major > 4 or (curr_major == 4 and curr_minor >= 2) %}
+{% capture difference %}
+**NOTE:**
+<br>
+Some upgrade note
+{% endcapture %}
+{% include templates/info-banner.md content=difference %}
+{% else %}
+
 {% if update_status == "true" %}
 {% capture difference %}
 **NOTE:**
@@ -137,6 +146,8 @@ Execute regular upgrade script:
 C:\thingsboard>upgrade.bat{% if manual_version_upgrade == "true" %} --fromVersion={% if manual_version_upgrade_label %}{{ manual_version_upgrade_label }}{% else %}{{ previous_version }}{% endif %}{% endif %}
 ```
 {: .copy-code}
+{% endif %}
+
 {% endif %}
 
 #### Start the service

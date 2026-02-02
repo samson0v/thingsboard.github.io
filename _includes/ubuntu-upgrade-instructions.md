@@ -122,7 +122,14 @@ Package installer may ask you to merge your ThingsBoard configuration. It is pre
 {% endcapture %}
 {% include templates/info-banner.md content=difference %}
 
-{% if update_status == "true" %}
+{% if curr_major > 4 or (curr_major == 4 and curr_minor >= 2) %}
+{% capture difference %}
+**NOTE:**
+<br>
+Some upgrade note
+{% endcapture %}
+{% include templates/info-banner.md content=difference %}
+{% elsif update_status == "true" %}
 Execute regular upgrade script:
 
 ```bash
