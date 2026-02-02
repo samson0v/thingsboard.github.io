@@ -4,6 +4,8 @@
 {%- assign previous_version = include.prev_version -%}
 {%- assign update_status = include.update_status | default: "true" -%}
 {%- assign applicable_versions = include.applicable_versions -%}
+{%- assign patch_status = include.patch_status -%}
+{%- assign base_version = include.base_version -%}
 {%- assign x_status = include.x -%}
 
 {% if docsPrefix == "pe/" %}
@@ -33,7 +35,11 @@
 {%- assign prev_major = prev_parts[0] -%}
 {%- assign prev_minor = prev_parts[1] -%}
 
+{% if patch_status == "true" %}
+### Upgrading {{ platform }} to latest {{ base_version }} ({{ current_version }})
+{% else %}
 ### Upgrading {{ platform }} to {{ current_version }}
+{% endif %}
 
 {%- if x_status == "true" -%}
 {%- assign prev_version_label = prev_major | append: "." | append: prev_minor | append: ".x" -%}
