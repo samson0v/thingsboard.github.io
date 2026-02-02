@@ -36,7 +36,11 @@
 
                 {% assign versionFamily = major | append: "-" | append: minor | append: "-x" %}
 
-                {% assign hashBase = version | replace: ".", "" %}
+                {% if parts.size == 3 and parts[2] == "0" %}
+                    {% assign hashBase = parts[0] | append: parts[1] %}
+                {% else %}
+                    {% assign hashBase = version | replace: ".", "" %}
+                {% endif %}
 
                 {% assign hashLinkReleaseBase = "thingsboard" %}
 

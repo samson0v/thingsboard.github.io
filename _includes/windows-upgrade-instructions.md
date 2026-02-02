@@ -121,13 +121,14 @@ net stop thingsboard
 * Finally, run **upgrade.bat** script to upgrade ThingsBoard to the new version.
 {% endif %}
 
-{% if curr_major > 4 or (curr_major == 4 and curr_minor >= 2) %}
-{% capture difference %}
+{% capture update_note %}
 **NOTE:**
 <br>
-Some upgrade note
+Some update note
 {% endcapture %}
-{% include templates/info-banner.md content=difference %}
+
+{% if curr_major != "3" and curr_major != "2" %}
+{% include templates/info-banner.md content=update_note %}
 {% else %}
 
 {% if update_status == "true" %}
