@@ -64,9 +64,13 @@
 
 {% capture difference %}
 **NOTE:**
-<br>
+{% if curr_major > "4" or (curr_major == "4" and curr_minor >= "2") %}
+These upgrade steps are applicable for ThingsBoard version {{ prev_version_label }}{% if patch_status == "true" %} or any {{ base_version }} patch{% endif %}.
+In order to upgrade to {{ current_version_with_platform | upcase }} you need to [**upgrade to {{ prev_version }} first**]({{ prev_version_href }}).
+{% else %}
 These upgrade steps are applicable for ThingsBoard version {{ prev_version_label }}{% if applicable_versions %}{% assign versions = applicable_versions | split: "," %}{% for v in versions %} and ThingsBoard version {{ v | strip }}{% endfor %}{% endif %}.
 In order to upgrade to {{ current_version_with_platform | upcase }} you need to [**upgrade to {{ prev_version_label }} first**]({{ prev_version_href }}).
+{% endif %}
 {% endcapture %}
 {% include templates/info-banner.md content=difference %}
 
@@ -98,4 +102,8 @@ If you are running older releases of ThingsBoard - be aware that the manifests i
 {% assign version = version | append: "PE" %}
 {% endif %}
 
+{% if curr_major > "4" or (curr_major == "4" and curr_minor >= "2") %}
+{% include docs/user-guide/install/new-docker-compose-upgrade-steps.md version=version previous_version=previous_version %}
+{% else %}
 {% include docs/user-guide/install/docker-compose-upgrade-steps.md version=version skipUpgrade=skipUpgrade %}
+{% endif %}
