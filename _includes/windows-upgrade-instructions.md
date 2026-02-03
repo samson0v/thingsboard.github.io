@@ -1,5 +1,6 @@
 {%- assign platform = "ThingsBoard CE" -%}
 {%- assign current_version = include.version -%}
+{%- assign family = include.family -%}
 {%- assign current_version_with_platform = current_version -%}
 {%- assign previous_version = include.prev_version -%}
 {%- assign update_status = include.update_status | default: "true" -%}
@@ -7,6 +8,8 @@
 {%- assign manual_version_upgrade = include.manual_version_upgrade | default: "false" -%}
 {%- assign manual_version_upgrade_label = include.manual_version_upgrade_label -%}
 {%- assign zip = include.zip | default: "false" -%}
+{%- assign patch_status = include.patch_status -%}
+{%- assign base_version = include.base_version -%}
 {%- assign x_status = include.x -%}
 
 {% if docsPrefix == "pe/" %}
@@ -39,7 +42,11 @@
 {%- assign prev_major = prev_parts[0] -%}
 {%- assign prev_minor = prev_parts[1] -%}
 
+{% if patch_status == "true" %}
+### Upgrading {{ platform }} to latest {{ base_version }} ({{ current_version }})
+{% else %}
 ### Upgrading {{ platform }} to {{ current_version }}
+{% endif %}
 
 {%- if x_status == "true" -%}
 {%- assign prev_version_label = prev_major | append: "." | append: prev_minor | append: ".x" -%}
@@ -64,11 +71,22 @@
 
 {% capture difference %}
 **NOTE:**
-<br>
+{% if curr_major > "4" or (curr_major == "4" and curr_minor >= "2") %}
+These upgrade steps are applicable for ThingsBoard version {{ prev_version }}{% if patch_status == "true" %} or any {{ base_version }} patch{% endif %}.
+In order to upgrade to {{ current_version_with_platform | upcase }} you need to [**upgrade to {{ prev_version }} first**]({{ prev_version_href }}).
+{% else %}
 These upgrade steps are applicable for ThingsBoard version {{ prev_version_label }}{% if applicable_versions %}{% assign versions = applicable_versions | split: "," %}{% for v in versions %} and ThingsBoard version {{ v | strip }}{% endfor %}{% endif %}.
 In order to upgrade to {{ current_version_with_platform | upcase }} you need to [**upgrade to {{ prev_version_label }} first**]({{ prev_version_href }}).
+{% endif %}
 {% endcapture %}
+
+{% if curr_major > "4" or (curr_major == "4" and curr_minor >= "2") %}
+{% if patch_status == "true" %}
 {% include templates/info-banner.md content=difference %}
+{% endif %}
+{% else %}
+{% include templates/info-banner.md content=difference %}
+{% endif %}
 
 {%- if curr_major_n > 4 -%}
   {%- if docsPrefix == "pe/" -%}
@@ -132,6 +150,30 @@ net stop thingsboard
 * Finally, run **upgrade.bat** script to upgrade ThingsBoard to the new version.
 {% endif %}
 
+{% capture update_note %}
+{% assign base_version_parts = base_version | split: "." %}
+{% assign patch_part = base_version_parts[2] %}
+{% if patch_status == "true" %}
+If you are upgrading from {{ previous_version }}, you **must** run the script below. However, if you are upgrading from version {{ family | append: "." | append: patch_part | append: ".x" }}, **DO NOT** run the upgrade script; proceed directly to starting the service.
+{% else %}
+If you are upgrading from version {{ previous_version }}, you must run the script below
+{% endif %}
+{% endcapture %}
+
+{% capture update_script %}
+Execute regular upgrade script:
+
+```text
+C:\thingsboard>upgrade.bat{% if manual_version_upgrade == "true" %} --fromVersion={% if manual_version_upgrade_label %}{{ manual_version_upgrade_label }}{% else %}{{ previous_version }}{% endif %}{% endif %}
+```
+{: .copy-code}
+{% endcapture %}
+
+{% if curr_major > "4" or (curr_major == "4" and curr_minor >= "2") %}
+{% include templates/warn-banner.md content=update_note %}
+{{ update_script }}
+{% else %}
+
 {% if update_status == "true" %}
 {% capture difference %}
 **NOTE:**
@@ -142,12 +184,9 @@ Scripts listed above should be executed using Administrator Role.
 {% endif %}
 
 {% if update_status == "true" %}
-Execute regular upgrade script:
+{{ update_script }}
+{% endif %}
 
-```text
-C:\thingsboard>upgrade.bat{% if manual_version_upgrade == "true" %} --fromVersion={% if manual_version_upgrade_label %}{{ manual_version_upgrade_label }}{% else %}{{ previous_version }}{% endif %}{% endif %}
-```
-{: .copy-code}
 {% endif %}
 
 #### Start the service

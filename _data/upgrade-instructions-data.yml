@@ -3,15 +3,15 @@
   release-date: Jan 20 2026
   release-date-edge: Jan 21, 2026
   lts: "true"
-  upgrade: "true"
   x: "true"
 4.2.1.1:
-  upgradable-from: "4.2.1"
+  upgradable-from: "4.2.0"
   release-date: Dec 24 2025
   release-date-edge: Jan 21, 2026
   lts: "true"
-  upgrade: "false"
+  patch: "true"
 4.2.1:
+  vulnerable: "true"
   upgradable-from: "4.2.0"
   release-date: Oct 15 2025
   release-date-edge: Jan 21, 2026
