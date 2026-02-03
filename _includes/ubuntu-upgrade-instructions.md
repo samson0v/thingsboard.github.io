@@ -66,9 +66,13 @@
 
 {% capture difference %}
 **NOTE:**
-<br>
+{% if curr_major > "4" or (curr_major == "4" and curr_minor >= "2") %}
+These upgrade steps are applicable for ThingsBoard version {{ prev_version_label }}{% if patch_status == "true" %} or any {{ base_version }} patch{% endif %}.
+In order to upgrade to {{ current_version_with_platform | upcase }} you need to [**upgrade to {{ prev_version }} first**]({{ prev_version_href }}).
+{% else %}
 These upgrade steps are applicable for ThingsBoard version {{ prev_version_label }}{% if applicable_versions %}{% assign versions = applicable_versions | split: "," %}{% for v in versions %} and ThingsBoard version {{ v | strip }}{% endfor %}{% endif %}.
 In order to upgrade to {{ current_version_with_platform | upcase }} you need to [**upgrade to {{ prev_version_label }} first**]({{ prev_version_href }}).
+{% endif %}
 {%- if docsPrefix == "pe/" -%}
 <br>
 [**Prepare**](#prepare-for-upgrading-thingsboard) for upgrading ThingsBoard.
@@ -125,11 +129,23 @@ Package installer may ask you to merge your ThingsBoard configuration. It is pre
 {% capture update_note %}
 **NOTE:**
 <br>
-Some update note
+If you are upgrading from {{ previous_version }}, execution of the migration script is required.
+<br>
+[Versioning and Release Policy](/docs/{{ docsPrefix }}releases/release-policy/#thingsboard-versioning)
 {% endcapture %}
 
-{% if curr_major != "3" and curr_major != "2" %}
-{% include templates/info-banner.md content=update_note %}
+{% capture update_script %}
+Execute regular upgrade script:
+
+```bash
+sudo /usr/share/thingsboard/bin/install/upgrade.sh{% if manual_version_upgrade == "true" %} --fromVersion={% if manual_version_upgrade_label %}{{ manual_version_upgrade_label }}{% else %}{{ previous_version }}{% endif %}{% endif %}
+```
+{: .copy-code}
+{% endcapture %}
+
+{% if curr_major > "4" or (curr_major == "4" and curr_minor >= "2") %}
+{% include templates/warn-banner.md content=update_note %}
+{{ update_script }}
 {% elsif update_status == "true" %}
 Execute regular upgrade script:
 

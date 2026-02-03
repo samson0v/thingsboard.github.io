@@ -527,10 +527,8 @@ def build_new_version_block(
         upgradable_from: str,
         release_date_raw: str,
         is_lts: bool,
-        upgrade: bool,
 ) -> str:
     lts_val = "true" if is_lts else "false"
-    upgrade_val = "true" if upgrade else "false"
 
     patch_line = ""
     if is_patch_version(new_version):
@@ -541,7 +539,6 @@ def build_new_version_block(
         f"  upgradable-from: \"{upgradable_from}\"\n"
         f"  release-date: {release_date_raw}\n"
         f"  lts: \"{lts_val}\"\n"
-        f"  upgrade: \"{upgrade_val}\"\n"
         f"{patch_line}"
         f"  x: \"true\"\n"
     )
@@ -565,7 +562,6 @@ def main() -> int:
 
     is_lts = ask_bool(f"3) Is {new_version} lts version (true/false): ")
     upgradable_from = ask(f"4) {new_version} upgradable-from: ")
-    upgrade = ask_bool(f"5) {new_version} upgrade (true/false): ")
 
     if not DATA_FILE.exists():
         print(f"ERROR: {DATA_FILE} not found")
@@ -597,7 +593,6 @@ def main() -> int:
         upgradable_from=upgradable_from,
         release_date_raw=release_date_raw,
         is_lts=is_lts,
-        upgrade=upgrade,
     )
 
     if insert_at is None:
