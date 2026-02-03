@@ -19,6 +19,9 @@
 {%- assign curr_major = curr_parts[0] -%}
 {%- assign curr_minor = curr_parts[1] -%}
 
+{%- assign curr_major_n = curr_major | plus: 0 -%}
+{%- assign curr_minor_n = curr_minor | plus: 0 -%}
+
 {%- assign prev_major = prev_parts[0] -%}
 {%- assign prev_minor = prev_parts[1] -%}
 
@@ -89,6 +92,20 @@ We strongly recommend that you also update your Docker Compose deployment manife
 If you are running older releases of ThingsBoard - be aware that the manifests in `master` branch of the repository may contain configurations for features that are not available in your specific version. Always ensure that manifests are compatible with your target ThingsBoard version while merging deployment files.
 {% endcapture %}
 {% include templates/warn-banner.md content=update_manifests_note %}
+
+{%- if curr_major_n > 4 -%}
+{%- if docsPrefix == "pe/" -%}
+{% include templates/install/pe-tb-products-upgrade-compatibility.md %}
+{%- else -%}
+{% include templates/install/tb-products-upgrade-compatibility.md %}
+{%- endif -%}
+{%- elsif curr_major_n == 4 and curr_minor_n >= 3 -%}
+{%- if docsPrefix == "pe/" -%}
+{% include templates/install/pe-tb-products-upgrade-compatibility.md %}
+{%- else -%}
+{% include templates/install/tb-products-upgrade-compatibility.md %}
+{%- endif -%}
+{%- endif -%}
 
 #### {{ platform }} service upgrade
 
