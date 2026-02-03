@@ -75,7 +75,14 @@ These upgrade steps are applicable for ThingsBoard version {{ prev_version_label
 In order to upgrade to {{ current_version_with_platform | upcase }} you need to [**upgrade to {{ prev_version_label }} first**]({{ prev_version_href }}).
 {% endif %}
 {% endcapture %}
+
+{% if curr_major > "4" or (curr_major == "4" and curr_minor >= "2") %}
+{% if patch_status == "true" %}
 {% include templates/info-banner.md content=difference %}
+{% endif %}
+{% else %}
+{% include templates/info-banner.md content=difference %}
+{% endif %}
 
 {% assign docker-compose-repo-link = "https://github.com/thingsboard/" %}
 
