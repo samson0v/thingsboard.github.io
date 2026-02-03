@@ -162,7 +162,6 @@ If you are upgrading from version {{ previous_version }}, you must run the scrip
 {% endcapture %}
 
 {% capture update_script %}
-Execute regular upgrade script:
 
 ```bash
 sudo /usr/share/thingsboard/bin/install/upgrade.sh{% if manual_version_upgrade == "true" %} --fromVersion={% if manual_version_upgrade_label %}{{ manual_version_upgrade_label }}{% else %}{{ previous_version }}{% endif %}{% endif %}
@@ -174,7 +173,6 @@ sudo /usr/share/thingsboard/bin/install/upgrade.sh{% if manual_version_upgrade =
 {% include templates/warn-banner.md content=update_note %}
 {{ update_script }}
 {% elsif update_status == "true" %}
-Execute regular upgrade script:
 
 ```bash
 sudo /usr/share/thingsboard/bin/install/upgrade.sh{% if manual_version_upgrade == "true" %} --fromVersion={% if manual_version_upgrade_label %}{{ manual_version_upgrade_label }}{% else %}{{ previous_version }}{% endif %}{% endif %}

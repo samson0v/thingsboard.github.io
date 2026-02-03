@@ -169,7 +169,6 @@ If you are upgrading from version {{ previous_version }}, you must run the scrip
 {% endcapture %}
 
 {% capture update_script %}
-Execute regular upgrade script:
 
 ```bash
 sudo /usr/share/thingsboard/bin/install/upgrade.sh{% if manual_version_upgrade == "true" %} --fromVersion={% if manual_version_upgrade_label %}{{ manual_version_upgrade_label }}{% else %}{{ previous_version }}{% endif %}{% endif %}
