@@ -138,17 +138,12 @@ net stop thingsboard
 * Unzip installation archive to ThingsBoard install dir.
 {% endif %}
 * Compare and merge your old ThingsBoard configuration files (from the backup you made in the first step) with new ones.
-{% if update_status == "true" %}
-* Finally, run **upgrade.bat** script to upgrade ThingsBoard to the new version.
-{% endif %}
 
 {% capture update_note %}
-If you are upgrading from {{ previous_version }}, execution of the migration script is [required](/docs/{{ docsPrefix }}releases/release-policy/#thingsboard-versioning).
+If you are upgrading from {{ previous_version }}, execution of the migration script is [required](/docs/{{ docsPrefix }}releases/release-policy/#thingsboard-versioning):
 {% endcapture %}
 
 {% capture update_script %}
-Execute regular upgrade script:
-
 ```text
 C:\thingsboard>upgrade.bat{% if manual_version_upgrade == "true" %} --fromVersion={% if manual_version_upgrade_label %}{{ manual_version_upgrade_label }}{% else %}{{ previous_version }}{% endif %}{% endif %}
 ```

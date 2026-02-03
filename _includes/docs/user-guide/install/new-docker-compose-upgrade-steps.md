@@ -2,7 +2,7 @@
 {% assign previous_version = include.previous_version %}
 
 {% capture update_note %}
-If you are upgrading from {{ previous_version }}, execution of the migration script is [required](/docs/{{ docsPrefix }}releases/release-policy/#thingsboard-versioning).
+If you are upgrading from {{ previous_version }}, execution of the migration script is [required](/docs/{{ docsPrefix }}releases/release-policy/#thingsboard-versioning):
 {% endcapture %}
 
 1. Change the parameter `TB_VERSION` in the `.env` file.
