@@ -143,11 +143,7 @@ net stop thingsboard
 {% endif %}
 
 {% capture update_note %}
-**NOTE:**
-<br>
-If you are upgrading from {{ previous_version }}, execution of the migration script is required.
-<br>
-[Versioning and Release Policy](/docs/{{ docsPrefix }}releases/release-policy/#thingsboard-versioning)
+If you are upgrading from {{ previous_version }}, execution of the migration script is [required](/docs/{{ docsPrefix }}releases/release-policy/#thingsboard-versioning).
 {% endcapture %}
 
 {% capture update_script %}

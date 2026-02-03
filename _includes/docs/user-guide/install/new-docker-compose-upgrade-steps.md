@@ -2,10 +2,7 @@
 {% assign previous_version = include.previous_version %}
 
 {% capture update_note %}
-**NOTE:**
-<br>
-If you are upgrading from {{ previous_version }}, execution of the migration script is required.
-[Versioning and Release Policy](/docs/{{ docsPrefix }}releases/release-policy/#thingsboard-versioning)
+If you are upgrading from {{ previous_version }}, execution of the migration script is [required](/docs/{{ docsPrefix }}releases/release-policy/#thingsboard-versioning).
 {% endcapture %}
 
 1. Change the parameter `TB_VERSION` in the `.env` file.
@@ -16,17 +13,19 @@ If you are upgrading from {{ previous_version }}, execution of the migration scr
 
 2. Execute the following commands:
     
-    ```bash
-    ./docker-stop-services.sh  
-    ```
-   
-   {% include templates/warn-banner.md content=update_note %}
-    ```bash
-    ./docker-upgrade-tb.sh
-    ```
-   
-    ```bash
-    ./docker-start-services.sh
-    ```
+ ```bash
+ ./docker-stop-services.sh  
+ ```
+ {: .copy-code}  
 
-{: .copy-code}
+ {% include templates/warn-banner.md content=update_note %}
+
+ ```bash
+ ./docker-upgrade-tb.sh
+ ```
+ {: .copy-code}  
+
+ ```bash
+ ./docker-start-services.sh
+ ```
+ {: .copy-code}
