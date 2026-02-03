@@ -147,27 +147,6 @@ net stop thingsboard
 {% endif %}
 * Compare and merge your old ThingsBoard configuration files (from the backup you made in the first step) with new ones.
 
-{% capture update_note %}
-{% assign base_version_parts = base_version | split: "." %}
-{% assign patch_part = base_version_parts[2] %}
-{% if patch_status == "true" %}
-If you are upgrading from {{ previous_version }}, you **must** run the script below. However, if you are upgrading from version {{ family | append: "." | append: patch_part | append: ".x" }}, **DO NOT** run the upgrade script; proceed directly to starting the service.
-{% else %}
-If you are upgrading from version {{ previous_version }}, you must run the script below
-{% endif %}
-{% endcapture %}
-
-{% capture update_script %}
-```text
-C:\thingsboard>upgrade.bat{% if manual_version_upgrade == "true" %} --fromVersion={% if manual_version_upgrade_label %}{{ manual_version_upgrade_label }}{% else %}{{ previous_version }}{% endif %}{% endif %}
-```
-{: .copy-code}
-{% endcapture %}
-
-{% if curr_major > "4" or (curr_major == "4" and curr_minor >= "2") %}
-{% include templates/warn-banner.md content=update_note %}
-{{ update_script }}
-{% else %}
 
 {% capture update_note %}
 {% assign base_version_parts = base_version | split: "." %}
