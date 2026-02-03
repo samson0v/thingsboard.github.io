@@ -68,7 +68,7 @@
 {% capture difference %}
 **NOTE:**
 {% if curr_major > "4" or (curr_major == "4" and curr_minor >= "2") %}
-These upgrade steps are applicable for ThingsBoard version {{ prev_version_label }}{% if patch_status == "true" %} or any {{ base_version }} patch{% endif %}.
+These upgrade steps are applicable for ThingsBoard version {{ prev_version }}{% if patch_status == "true" %} or any {{ base_version }} patch{% endif %}.
 In order to upgrade to {{ current_version_with_platform | upcase }} you need to [**upgrade to {{ prev_version }} first**]({{ prev_version_href }}).
 {% else %}
 These upgrade steps are applicable for ThingsBoard version {{ prev_version_label }}{% if applicable_versions %}{% assign versions = applicable_versions | split: "," %}{% for v in versions %} and ThingsBoard version {{ v | strip }}{% endfor %}{% endif %}.
