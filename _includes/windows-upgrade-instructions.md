@@ -140,7 +140,7 @@ net stop thingsboard
 * Compare and merge your old ThingsBoard configuration files (from the backup you made in the first step) with new ones.
 
 {% capture update_note %}
-If you are upgrading from {{ previous_version }}, execution of the migration script is [required](/docs/{{ docsPrefix }}releases/release-policy/#thingsboard-versioning):
+If you are upgrading from {{ previous_version }}, execution of the migration script is [required](/docs/{{ docsPrefix }}releases/release-policy/#thingsboard-versioning).
 {% endcapture %}
 
 {% capture update_script %}
