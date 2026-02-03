@@ -1,5 +1,6 @@
 {%- assign platform = "ThingsBoard CE" -%}
 {%- assign current_version = include.version -%}
+{%- assign family = include.family -%}
 {%- assign current_version_with_platform = current_version -%}
 {%- assign previous_version = include.prev_version -%}
 {%- assign update_status = include.update_status | default: "true" -%}
@@ -78,7 +79,14 @@ These upgrade steps are applicable for ThingsBoard version {{ prev_version_label
 In order to upgrade to {{ current_version_with_platform | upcase }} you need to [**upgrade to {{ prev_version_label }} first**]({{ prev_version_href }}).
 {% endif %}
 {% endcapture %}
+
+{% if curr_major > "4" or (curr_major == "4" and curr_minor >= "2") %}
+{% if patch_status == "true" %}
 {% include templates/info-banner.md content=difference %}
+{% endif %}
+{% else %}
+{% include templates/info-banner.md content=difference %}
+{% endif %}
 
 {%- if curr_major_n > 4 -%}
   {%- if docsPrefix == "pe/" -%}
@@ -140,7 +148,13 @@ net stop thingsboard
 * Compare and merge your old ThingsBoard configuration files (from the backup you made in the first step) with new ones.
 
 {% capture update_note %}
-If you are upgrading from {{ previous_version }}, execution of the migration script is [required](/docs/{{ docsPrefix }}releases/release-policy/#thingsboard-versioning).
+{% assign base_version_parts = base_version | split: "." %}
+{% assign patch_part = base_version_parts[2] %}
+{% if patch_status == "true" %}
+If you are upgrading from {{ previous_version }}, you **must** run the script below. However, if you are upgrading from version {{ family | append: "." | append: patch_part | append: ".x" }}, **DO NOT** run the upgrade script; proceed directly to starting the service.
+{% else %}
+If you are upgrading from version {{ previous_version }}, you must run the script below
+{% endif %}
 {% endcapture %}
 
 {% capture update_script %}

@@ -2,9 +2,14 @@
 {% assign previous_version = include.previous_version %}
 
 {% capture update_note %}
-If you are upgrading from {{ previous_version }}, execution of the migration script is [required](/docs/{{ docsPrefix }}releases/release-policy/#thingsboard-versioning).
+{% assign base_version_parts = base_version | split: "." %}
+{% assign patch_part = base_version_parts[2] %}
+{% if patch_status == "true" %}
+If you are upgrading from {{ previous_version }}, you **must** run the script below. However, if you are upgrading from version {{ family | append: "." | append: patch_part | append: ".x" }}, **DO NOT** run the upgrade script; proceed directly to starting the service.
+{% else %}
+If you are upgrading from version {{ previous_version }}, you must run the script below
+{% endif %}
 {% endcapture %}
-
 1. Change the parameter `TB_VERSION` in the `.env` file.
 
   ```.env
