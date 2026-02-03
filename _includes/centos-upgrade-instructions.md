@@ -21,6 +21,9 @@
 {%- assign curr_major = curr_parts[0] -%}
 {%- assign curr_minor = curr_parts[1] -%}
 
+{%- assign curr_major_n = curr_major | plus: 0 -%}
+{%- assign curr_minor_n = curr_minor | plus: 0 -%}
+
 {%- assign prev_major = prev_parts[0] -%}
 {%- assign prev_minor = prev_parts[1] -%}
 
@@ -67,7 +70,7 @@
 {% capture difference %}
 **NOTE:**
 {% if curr_major > "4" or (curr_major == "4" and curr_minor >= "2") %}
-These upgrade steps are applicable for ThingsBoard version {{ prev_version_label }}{% if patch_status == "true" %} or any {{ base_version }} patch{% endif %}.
+These upgrade steps are applicable for ThingsBoard version {{ prev_version }}{% if patch_status == "true" %} or any {{ base_version }} patch{% endif %}.
 In order to upgrade to {{ current_version_with_platform | upcase }} you need to [**upgrade to {{ prev_version }} first**]({{ prev_version_href }}).
 {% else %}
 These upgrade steps are applicable for ThingsBoard version {{ prev_version_label }}{% if applicable_versions %}{% assign versions = applicable_versions | split: "," %}{% for v in versions %} and ThingsBoard version {{ v | strip }}{% endfor %}{% endif %}.
@@ -79,6 +82,20 @@ In order to upgrade to {{ current_version_with_platform | upcase }} you need to 
 {%- endif -%}
 {% endcapture %}
 {% include templates/info-banner.md content=difference %}
+
+{%- if curr_major_n > 4 -%}
+  {%- if docsPrefix == "pe/" -%}
+    {% include templates/install/pe-tb-products-upgrade-compatibility.md %}
+  {%- else -%}
+    {% include templates/install/tb-products-upgrade-compatibility.md %}
+  {%- endif -%}
+{%- elsif curr_major_n == 4 and curr_minor_n >= 3 -%}
+  {%- if docsPrefix == "pe/" -%}
+    {% include templates/install/pe-tb-products-upgrade-compatibility.md %}
+  {%- else -%}
+    {% include templates/install/tb-products-upgrade-compatibility.md %}
+  {%- endif -%}
+{%- endif -%}
 
 {% if current_version == "3.8" and docsPrefix != "pe/" %}
 #### Install PostgreSQL contrib package (For CentOS only)
@@ -135,11 +152,7 @@ Package installer may ask you to merge your ThingsBoard configuration. It is pre
 {% include templates/info-banner.md content=difference %}
 
 {% capture update_note %}
-**NOTE:**
-<br>
-If you are upgrading from {{ previous_version }}, execution of the migration script is required.
-<br>
-[Versioning and Release Policy](/docs/{{ docsPrefix }}releases/release-policy/#thingsboard-versioning)
+If you are upgrading from {{ previous_version }}, execution of the migration script is [required](/docs/{{ docsPrefix }}releases/release-policy/#thingsboard-versioning).
 {% endcapture %}
 
 {% capture update_script %}
