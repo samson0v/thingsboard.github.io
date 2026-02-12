@@ -117,6 +117,8 @@ attributes in key-value pairs.
 
 `client.send_attributes(data)`
 
+**Arguments**
+
 | **Arguments** | **Description**                                                 |
 |:--------------|:----------------------------------------------------------------|
 | data          | (Required) Data that will be sent as attributes to ThingsBoard. |
@@ -149,11 +151,11 @@ grouped by timestamp, which is useful for sending historical data to ThingsBoard
 **Example usage**
 
 ```python
-# Sending telemetry data in regular dictionary format
+# Sending telemetry data in dictionary format
 telemetry = {"temperature": 25.5, "humidity": 60}
 client.send_telemetry(telemetry)
 
-# Sending telemetry data grouped by timestamp
+# Sending telemetry data grouped by timestamps
 from time import time
 telemetry = [{"ts": 1451649600000, "values": {"temperature": 42.2, "humidity": 71}},
              {"ts": 1451649601000, "values": {"temperature": 42.3, "humidity": 72}}]
@@ -197,10 +199,12 @@ client.request_attributes(client_keys=["atr1", "atr2"], callback=on_attributes_c
 
 #### claim_device
 
-Claims a device on ThingsBoard. This method can be called after connecting to ThingsBoard. Method supports claiming a 
-device using a claim code. After claiming a device, it will be associated with the account that owns the claim code. 
-This method is useful when you want to allow users to claim their devices on ThingsBoard without providing them with 
-access to the ThingsBoard platform.
+Use this method to trigger the device claiming process. By passing a unique secret 
+key, the device is automatically linked to the user’s account. This simplifies the onboarding experience, as users 
+can activate their hardware without needing platform-level permissions.
+
+More information about device claiming can be found in
+the [Device claiming](/docs/{{docsPrefix}}user-guide/device-claiming/) section of the documentation.
 
 **Method Syntax**
 
@@ -210,7 +214,7 @@ access to the ThingsBoard platform.
 
 | **Arguments** | **Description**                                                                                                                                                            |
 |:--------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| secret_key    | (Required) Claim code that will be used to claim the device on ThingsBoard.                                                                                                |
+| secret_key    | (Required) Secret key that will be used to claim the device on ThingsBoard.                                                                                                |
 | duration_ms   | (Optional) Duration in milliseconds for which the claim code will be valid. If not provided, the claim code will be valid indefinitely until it is used to claim a device. |
 | ---           |                                                                                                                                                                            |
 
@@ -226,10 +230,9 @@ client.claim_device("my_claim_code", duration_ms=60000)
 
 #### subscribe_to_attribute
 
-Subscribes to attribute update from ThingsBoard. This method can be called after connecting to ThingsBoard. Method 
-supports subscribing to shared attribute update. You can specify which shared attribute you want to subscribe to by 
-providing an attribute key. If subscribed attribute is updated on ThingsBoard, the provided callback function will be 
-called with the result.
+Subscribes to attribute updates from ThingsBoard. You can specify which shared attribute you want to subscribe to by 
+providing an attribute key. If subscribed attribute value is updated, the provided callback function will be 
+called with the corresponding attribute value.
 
 Method will return a subscription ID that can be used to unsubscribe from attribute updates using 
 the [unsubscribe_from_attribute](/docs/reference/micropython-client-sdk/#unsubscribe_from_attribute) method.
@@ -240,11 +243,11 @@ the [unsubscribe_from_attribute](/docs/reference/micropython-client-sdk/#unsubsc
 
 **Arguments**
 
-| **Arguments** | **Description**                                                                                                                                                                                                                    |
-|:--------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| key           | (Required) Shared attribute key to subscribe to for updates from ThingsBoard.                                                                                                                                                      |
-| callback      | (Required) Callback function that will be called when the subscribed attribute is updated on ThingsBoard. The callback function should accept two arguments: `result` and `*args`, which will contain the updated attribute value. |
-| ---           |                                                                                                                                                                                                                                    |
+| **Arguments** | **Description**                                                                                                                                                                                                        |
+|:--------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| key           | (Required) Shared attribute key to subscribe to for updates from ThingsBoard.                                                                                                                                          |
+| callback      | (Required) A user-defined function triggered whenever a subscribed attribute is updated on ThingsBoard. The callback must accept two parameters: result (the updated data dictionary) and *args (additional metadata). |
+| ---           |                                                                                                                                                                                                                        |
 
 **Example usage**
 
@@ -258,9 +261,8 @@ sub_id = client.subscribe_to_attribute("frequency", callback)
 
 #### subscribe_to_all_attributes
 
-Subscribes to all attribute updates from ThingsBoard. This method can be called after connecting to ThingsBoard. 
-Method supports subscribing to all shared attribute updates. If any shared attribute is updated on ThingsBoard, 
-the provided callback function will be called with the result.
+Subscribes to all shared attribute updates from ThingsBoard. Whenever any shared attribute is modified on the server, 
+the SDK triggers the designated callback function, passing the updated data as the result.
 
 Method will return a subscription ID that can be used to unsubscribe from attribute updates using 
 the [unsubscribe_from_attribute](/docs/reference/micropython-client-sdk/#unsubscribe_from_attribute) method.
@@ -271,10 +273,10 @@ the [unsubscribe_from_attribute](/docs/reference/micropython-client-sdk/#unsubsc
 
 **Arguments**
 
-| **Arguments** | **Description**                                                                                                                                                                                                                        |
-|:--------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| callback      | (Required) Callback function that will be called when any shared attribute is updated on ThingsBoard. The callback function should accept two arguments: `result` and `*args`, which will contain the updated attribute key and value. |
-| ---           |                                                                                                                                                                                                                                        |
+| **Arguments** | **Description**                                                                                                                                                                               |
+|:--------------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| callback      | (Required) Triggers when any shared attribute change is pushed from the server. The callback receives a result object containing the modified key-value pairs and *args for extended context. |
+| ---           |                                                                                                                                                                                               |
 
 **Example usage**
 
@@ -288,10 +290,10 @@ sub_id = client.subscribe_to_all_attributes(callback)
 
 #### unsubscribe_from_attribute
 
-Unsubscribes from attribute updates from ThingsBoard. This method can be called after connecting to ThingsBoard. Method
-supports unsubscribing from shared attribute updates using the subscription ID that was returned when subscribing to
-attribute updates using the [subscribe_to_attribute](/docs/reference/micropython-client-sdk/#subscribe_to_attribute) 
-or [subscribe_to_all_attributes](/docs/reference/micropython-client-sdk/#subscribe_to_all_attributes) methods.
+Terminates an existing subscription for shared attribute updates. This method requires the `subscription_id` returned 
+by the original call to [subscribe_to_attribute](/docs/reference/micropython-client-sdk/#subscribe_to_attribute) or 
+[subscribe_to_all_attributes](/docs/reference/micropython-client-sdk/#subscribe_to_all_attributes). Once unsubscribed, 
+the associated callback will no longer trigger upon server-side changes.
 
 **Method Syntax**
 
@@ -299,10 +301,10 @@ or [subscribe_to_all_attributes](/docs/reference/micropython-client-sdk/#subscri
 
 **Arguments**
 
-| **Arguments**   | **Description**                                                                                                                                                                                                                                                                                      |
-|:----------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| subscription_id | (Required) Subscription ID that was returned when subscribing to attribute updates using the [subscribe_to_attribute](/docs/reference/micropython-client-sdk/#subscribe_to_attribute) or [subscribe_to_all_attributes](/docs/reference/micropython-client-sdk/#subscribe_to_all_attributes) methods. |
-| ---             |                                                                                                                                                                                                                                                                                                      |
+| **Arguments**   | **Description**                                                                                                                                                                                                                                                                                     |
+|:----------------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| subscription_id | (Required) Subscription ID returned when subscribing to attribute updates using the [subscribe_to_attribute](/docs/reference/micropython-client-sdk/#subscribe_to_attribute) or [subscribe_to_all_attributes](/docs/reference/micropython-client-sdk/#subscribe_to_all_attributes) methods.         |
+| ---             |                                                                                                                                                                                                                                                                                                     |
 
 **Example usage**
 
@@ -318,10 +320,12 @@ client.unsubscribe_from_attribute(sub_id)
 
 #### set_server_side_rpc_request_handler
 
-Sets a handler for server-side RPC requests from ThingsBoard. This method can be called after connecting to 
-ThingsBoard. If a server-side RPC request is received from ThingsBoard, the provided handler function will be called 
-with the result. The handler function should accept two arguments: `request_id` and `request_body`, which will contain 
-the ID of the received RPC request and the data of the received RPC request, respectively.
+Configures a handler for [Remote Procedure Call](/docs/user-guide/rpc/) requests initiated from ThingsBoard. This 
+method should be invoked after establishing a connection. When a request is received, the SDK executes the designated 
+handler, passing the following arguments:
+
+- `request_id` - a unique identifier for the specific RPC request, required for sending a response.
+- `request_body` - a dictionary containing the command details, typically including the method name and params.
 
 **Method Syntax**
 
@@ -329,10 +333,10 @@ the ID of the received RPC request and the data of the received RPC request, res
 
 **Arguments**
 
-| **Arguments** | **Description**                                                                                                                                                                                                                                                                                               |
-|:--------------|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| handler       | (Required) Handler function that will be called when a server-side RPC request is received from ThingsBoard. The handler function should accept two arguments: `request_id` and `request_body`, which will contain the ID of the received RPC request and the data of the received RPC request, respectively. |
-| ---           |                                                                                                                                                                                                                                                                                                               |
+| **Arguments** | **Description**                                                                                                                                                                                                         |
+|:--------------|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| handler       | Defines the logic to execute when ThingsBoard initiates a remote command. The function receives two parameters: request_id, representing the transaction ID, and request_body, containing the specific request payload. |
+| ---           |                                                                                                                                                                                                                         |
 
 **Example usage**
 
@@ -345,12 +349,9 @@ client.set_server_side_rpc_request_handler(handler)
 
 #### send_rpc_reply
 
-Sends a reply to a server-side RPC request from ThingsBoard. This method should be called in the handler function that 
-is set using the 
-[set_server_side_rpc_request_handler](/docs/reference/micropython-client-sdk/#set_server_side_rpc_request_handler) 
-method when a server-side RPC request is received from ThingsBoard. The `request_id` argument should be the ID of the 
-received RPC request, and the `response` argument should be the data that will be sent as a reply to the received RPC 
-request.
+Responds to an incoming RPC request from ThingsBoard. Use this method inside your RPC handler to return data to the 
+server. It requires the `request_id` from the initial request and a `response` object containing the result. Failing to 
+call this method may result in `request timeout` errors on the ThingsBoard dashboard.
 
 **Method Syntax**
 
@@ -358,11 +359,11 @@ request.
 
 **Arguments**
 
-| **Arguments** | **Description**                                                                                                                                                                                                                                                                                                                                                                  |
-|:--------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| request_id    | (Required) ID of the received RPC request that will be used to send a reply to the received RPC request. This ID is provided as an argument to the handler function that is set using the [set_server_side_rpc_request_handler](/docs/reference/micropython-client-sdk/#set_server_side_rpc_request_handler) method when a server-side RPC request is received from ThingsBoard. |
-| response      | (Required) Data that will be sent as a reply to the received RPC request.                                                                                                                                                                                                                                                                                                        |
-| ---           |                                                                                                                                                                                                                                                                                                                                                                                  |
+| **Arguments** | **Description**                                                                 |
+|:--------------|:--------------------------------------------------------------------------------|
+| request_id    | (Required) ID of the received RPC request that will be used to send a reply to. |
+| response      | (Required) Data that will be sent as a reply to the received RPC.               |
+| ---           |                                                                                 |
 
 **Example usage**
 
@@ -376,9 +377,9 @@ client.set_server_side_rpc_request_handler(handler)
 
 #### get_provision_request
 
-Static method that forming provision request for device provisioning by input arguments. The returned provision 
-request should be sent to ThingsBoard using the [provision](/docs/reference/micropython-client-sdk/#provision) method. 
-Using in pair with [provision](/docs/reference/micropython-client-sdk/#provision) method.
+Static method that forms a request for [device provisioning](/docs/user-guide/device-provisioning/) by input arguments. 
+The returned provision request should be sent to ThingsBoard using the 
+[provision](/docs/reference/micropython-client-sdk/#provision) method.
 
 **Method Syntax**
 
@@ -386,18 +387,18 @@ Using in pair with [provision](/docs/reference/micropython-client-sdk/#provision
 
 **Arguments**
 
-| **Arguments**    | **Description**                                                                                                                                            |
-|:-----------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------|
-| provision_key    | (Required) Provision key that will be used for device provisioning on ThingsBoard.                                                                         |
-| provision_secret | (Required) Provision secret that will be used for device provisioning on ThingsBoard.                                                                      |
-| device_name      | (Optional) Device name that will be used for device provisioning on ThingsBoard. If not provided, the device name will be the same as the provision key.   |
-| access_token     | (Optional) Access token that will be used for device provisioning on ThingsBoard.                                                                          |
-| client_id        | (Optional) Client ID that will be used for device provisioning on ThingsBoard.                                                                             |
-| username         | (Optional) Username that will be used for device provisioning on ThingsBoard.                                                                              |
-| password         | (Optional) Password that will be used for device provisioning on ThingsBoard.                                                                              |
-| hash             | (Optional) Hash that will be used for device provisioning on ThingsBoard.                                                                                  |
-| gateway          | (Optional) Flag that indicates whether the provision request is for a gateway device. If not provided, the provision request will be for a regular device. |
-| ---              |                                                                                                                                                            |
+| **Arguments**    | **Description**                                                                                                                                              |
+|:-----------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| provision_key    | (Required) Provisioning device key, you should take it from configured device profile.                                                                       |
+| provision_secret | (Required) Provisioning device secret, you should take it from configured device profile.                                                                    |
+| device_name      | (Optional) Device name in ThingsBoard.                                                                                                                       |
+| access_token     | (Optional) Access token for device in ThingsBoard.                                                                                                           |
+| client_id        | (Optional) Client id for device in ThingsBoard.                                                                                                              |
+| username         | (Optional) Username for device in ThingsBoard.                                                                                                               |
+| password         | (Optional) Password for device in ThingsBoard.                                                                                                               |
+| hash             | (Optional) Public key X509 hash for device in ThingsBoard.                                                                                                   |
+| gateway          | (Optional) Flag that indicates whether the provision request is for a gateway device. If not provided, the provision request will be for a regular device.   |
+| ---              |                                                                                                                                                              |
 
 **Example usage**
 
@@ -420,11 +421,11 @@ provision_request = TBDeviceMqttClient.get_provision_request("my_provision_key",
 
 #### provision
 
-Sends a provision request to ThingsBoard for device provisioning. The `provision_request` argument should be the 
-provision request that is formed using the 
-[get_provision_request](/docs/reference/micropython-client-sdk/#get_provision_request) static method. If the provision 
-request is successful, the device will be provisioned on ThingsBoard and associated with the account that owns the 
-provision key and provision secret. If the provision request is not successful, an exception will be raised.
+Sends a request to ThingsBoard for [device provisioning](/docs/user-guide/device-provisioning/). 
+The argument of the method should be the provision request that is formed using the 
+[get_provision_request](/docs/reference/micropython-client-sdk/#get_provision_request) static method. If the request 
+is successful, the device will be provisioned on ThingsBoard and associated with the account that owns the 
+provision key and provision secret. If the request is not successful, an exception will be raised.
 
 **Method Syntax**
 
@@ -432,12 +433,12 @@ provision key and provision secret. If the provision request is not successful, 
 
 **Arguments**
 
-| **Arguments**     | **Description**                                                                                                                                                                |
-|:------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| host              | (Required) Host of the ThingsBoard server to which the provision request will be sent.                                                                                         |
-| port              | (Required) Port of the ThingsBoard server to which the provision request will be sent.                                                                                         |
-| provision_request | (Required) Provision request that will be sent to ThingsBoard for device provisioning. The provision request should be formed using the `get_provision_request` static method. |
-| ---               |                                                                                                                                                                                |
+| **Arguments**     | **Description**                                                                                                                                                      |
+|:------------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| host              | (Required) Host of the ThingsBoard server.                                                                                                                           |
+| port              | (Required) Port of the ThingsBoard server.                                                                                                                           |
+| provision_request | (Required) Request that will be sent to ThingsBoard for device provisioning. The provision request should be formed using the `get_provision_request` static method. |
+| ---               |                                                                                                                                                                      |
 
 **Example usage**
 
@@ -445,7 +446,7 @@ provision key and provision secret. If the provision request is not successful, 
 # Forming provision request
 provision_request = TBDeviceMqttClient.get_provision_request("my_provision_key", "my_provision_secret")
 # Sending provision request to ThingsBoard for device provisioning
-provisioned_credentials = client.provision("thingsboard.server.com", 1883, provision_request)
+provisioned_credentials = client.provision("thingsboard.cloud", 1883, provision_request)
 ```
 
 ### Concepts
@@ -454,7 +455,7 @@ provisioned_credentials = client.provision("thingsboard.server.com", 1883, provi
 
 In this section, we will go over the core concepts of the MicroPython Client SDK, such as connecting to ThingsBoard, 
 sending and receiving data. Understanding these concepts will help you to use the MicroPython Client SDK effectively 
-and efficiently in your projects.
+in your projects.
 
 Let's review the main concepts of the MicroPython Client SDK using the following code example:
 
@@ -520,10 +521,11 @@ while True:
 
 #### Connecting to ThingsBoard
 
-To connect to ThingsBoard using the MicroPython Client SDK, you need to create an instance of the `TBDeviceMqttClient` 
-class and call the `connect` method. When creating an instance of the `TBDeviceMqttClient` class, you need to provide 
-credentials for connecting to ThingsBoard, such as the host, port, and access token. After calling the `connect` 
-method, you will be connected and can start sending data. We recommend the following minimal code snippet to use:
+To connect to ThingsBoard using the MicroPython Client SDK, instantiate the `TBDeviceMqttClient` class by providing 
+your server credentials: host, port, and access token. Once the client is initialized, invoke the 
+[connect()](/docs/reference/micropython-client-sdk/#connect) method to establish the MQTT session. After a successful 
+connection, the device is ready to transmit telemetry or subscribe to updates. We recommend the following minimal code 
+snippet to use:
 
 ```python
 import network
@@ -550,15 +552,15 @@ while True:
 
 Before communicating with the cloud, the device must bridge the gap between the hardware and the network:
 
-- The network module initializes the Wi-Fi chip. We use STA_IF (Station Interface) to connect the device to an existing
+- The network module initializes the Wi-Fi instance. We use STA_IF (Station Interface) to connect the device to an existing
   access point.
 - The `TBDeviceMqttClient` is the primary class. It requires ThingsBoard host and a unique Access Token generated in the
   ThingsBoard device page.
 
 #### Handling Server-Side RPC
 
-Remote Procedure Calls (RPC) allow ThingsBoard to send commands to your device (e.g., "Turn on the LED" or "Reset").
-To handle these commands, you need to set a handler function using
+[Remote Procedure Calls](/docs/user-guide/rpc/) allow ThingsBoard to send commands to your device 
+(e.g., "Turn on the LED" or "Reset"). To handle these commands, you need to set a handler function using
 the [set_server_side_rpc_request_handler](/docs/reference/micropython-client-sdk/#set_server_side_rpc_request_handler)
 method. This handler will be called whenever a server-side RPC request is received from ThingsBoard. The handler
 function should accept two arguments: `request_id` and `request_body`, which will contain the ID of the received RPC
@@ -578,26 +580,25 @@ client.set_server_side_rpc_request_handler(on_server_side_rpc_request)
 
 In the SDK, we don't "wait" for a command, instead we provide a callback function (`on_server_side_rpc_request`):
 
-- Tell the client which function to run when a message arrives using `set_server_side_rpc_request_handler()`.
-- When a command arrives, the SDK automatically passes the request_id (used for the reply) and the request_body (the
-  command data) to your function.
-- The `send_rpc_reply` method is important. It informs the server that the command was received and processed
+- Tells the client which function to run when a RPC arrives using [set_server_side_rpc_request_handler()](/docs/reference/micropython-client-sdk/#set_server_side_rpc_request_handler).
+- When a RPC arrives, the SDK automatically passes the `request_id` (used for the reply) and the `request_body` to your function.
+- The [send_rpc_reply()](/docs/reference/micropython-client-sdk/#send_rpc_reply) informs the server that the RPC was received and processed
   successfully.
 
 #### The Non-Blocking Loop
 
-The most critical part of the SDK implementation is the main loop. In MicroPython, if you use `time.sleep()`, the 
+The most critical part of the SDK implementation is the main loop. In MicroPython, if you use `time.sleep_ms()`, the 
 device is effectively "blind" to incoming messages during that pause.
 
 `client.check_for_msg()` method is the "heartbeat" of your communication:
 
-- It checks the MQTT buffer for incoming RPCs or configuration updates.
-- By wrapping it in a safe_check_msg() function, we ensure that if a network hiccup occurs (an OSError), the script
-  doesn't crash—it, but simply logs the error and tries again in the next cycle.
+- It checks the MQTT buffer for incoming messages.
+- By wrapping it in a `safe_check_msg()` function, we ensure that if a network interruption occurs (an `OSError`), the program
+  doesn't crash, but simply logs the error and tries again in the next cycle.
 
 #### Telemetry and Data Flow
 
-The SDK provides methods to send telemetry data to ThingsBoard. You can use the `send_telemetry` method to send
+The SDK provides methods to send telemetry data to ThingsBoard. You can use the [send_telemetry()](/docs/reference/micropython-client-sdk/#send_telemetry) method to send
 data in various formats, including key-value pairs and lists. The SDK also supports sending telemetry data grouped by 
 timestamp, which is useful for sending historical data to ThingsBoard.
 
